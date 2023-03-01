@@ -1,4 +1,5 @@
 import pygame
+import sqlite3
 from load_image import load_image
 
 pygame.init()
@@ -7,6 +8,10 @@ size = width, height = 600, 600
 screen = pygame.display.set_mode(size)
 passive_confirm_btn = load_image('pixil-frame-0 (18).png')
 active_confirm_btn = load_image('pixil-frame-0 (19).png')
+db = sqlite3.connect('fin_assist.db')
+cursor = db.cursor()
+cursor.execute('''CREATE TABLE IF NOT EXISTS info(login TEXT, result TEXT)''')
+db.commit()
 
 class SignInWindow:
     def __init__(self, screen):
@@ -30,8 +35,8 @@ class InputBox:
         self.x, self.y = x, y
         self.rect = pygame.Rect(self.x, self.y, 250, 50)
         self.input_surf = pygame.Surface((250, 50))
-        self.passive_color = pygame.Color('#9F0000')
-        self.active_color = pygame.Color('#FF0000')
+        self.passive_color = pygame.Color('#72aee6')
+        self.active_color = pygame.Color('#72acc6')
         self.color = self.passive_color
         self.font = pygame.font.Font('data/Sonic 1 Title Screen Filled.ttf', 16)
         self.text = text
@@ -85,17 +90,27 @@ class Button(pygame.sprite.Sprite):
 
 
 screen.fill((20, 20, 20))
-
-ib = InputBox(175, 225, 'user name')
-ib_2 = InputBox(175, 275, 'password')
+users, results = [], []
+ib = InputBox(175, 250, 'user name')
 all_sprites = pygame.sprite.Group()
 running = True
 
+# в базе данных 2 столбца, по существу работает только login, result будет использоваться для таблицы лидеров
+def add_info():
+    login_data = ib.text
+    result_data = 'no data'
+    cursor.execute(f'SELECT login FROM info WHERE login="{login_data}"')
+    if cursor.fetchone() is None:
+        cursor.execute(f'INSERT INTO info VALUES("{login_data}", "{result_data}")')
+        print('ok')
+        db.commit()
+        from main_level import Hero
+        return Hero
+    else:
+        print('Такая записать уже имеется!')
 
-def closeall():
-    global running
-    running = False
-button = Button(all_sprites, 50, passive_confirm_btn, active_confirm_btn, closeall)
+
+button = Button(all_sprites, 50, passive_confirm_btn, active_confirm_btn, add_info)
 sign = SignInWindow(screen)
 sign.draw_title()
 while running:
@@ -103,7 +118,6 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         ib.generate(event)
-        ib_2.generate(event)
         all_sprites.update(event)
     all_sprites.draw(screen)
     all_sprites.update()

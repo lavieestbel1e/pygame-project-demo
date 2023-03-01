@@ -1,4 +1,5 @@
 import pygame
+import time
 from load_image import load_image
 
 pygame.init()
@@ -23,7 +24,7 @@ class EnteranceWindow:
 
     def draw_title(self):
         font = pygame.font.Font('data/Sonic 1 Title Screen Filled.ttf', 28)
-        title = font.render('It Wants To Eat', True, 'red')
+        title = font.render('It Wants To Eat', True, '#72aee6')
         pos = title.get_rect(center=(300, 150))
         self.screen.blit(title, pos)
         pygame.display.update()
@@ -53,12 +54,20 @@ ew.draw_title()
 all_sprites = pygame.sprite.Group()
 running = True
 
-def closeall():
-    return
+def open_sign_in():
+    from sign_in_window import SignInWindow
+    return SignInWindow
 
-button = Button(all_sprites, 0, passive_sign_in_btn, active_sign_in_btn, closeall)
-button_2 = Button(all_sprites, 75, passive_sign_up_btn, active_sign_up_btn, closeall)
-button_3 = Button(all_sprites, 150, passive_settings_btn, active_settings_btn, closeall)
+def open_sign_up():
+    from sign_up_window import SignUpWindow
+    return SignUpWindow
+
+def open_nothing():
+    pass
+
+button = Button(all_sprites, 0, passive_sign_in_btn, active_sign_in_btn, open_sign_in)
+button_2 = Button(all_sprites, 75, passive_sign_up_btn, active_sign_up_btn, open_sign_up)
+button_3 = Button(all_sprites, 150, passive_settings_btn, active_settings_btn, open_nothing)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -67,4 +76,5 @@ while running:
     all_sprites.draw(screen)
     all_sprites.update()
     pygame.display.flip()
+time.sleep(1)
 pygame.quit()

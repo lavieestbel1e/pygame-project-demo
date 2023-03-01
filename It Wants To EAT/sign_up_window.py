@@ -1,6 +1,5 @@
 import pygame
-import random
-import time
+import sqlite3
 from load_image import load_image
 from random import shuffle
 
@@ -35,8 +34,8 @@ class InputBox:
         self.x, self.y = x, y
         self.rect = pygame.Rect(self.x, self.y, 250, 50)
         self.input_surf = pygame.Surface((250, 50))
-        self.passive_color = pygame.Color('#9F0000')
-        self.active_color = pygame.Color('#FF0000')
+        self.passive_color = pygame.Color('#72aee6')
+        self.active_color = pygame.Color('#72acc6')
         self.color = self.passive_color
         self.font = pygame.font.Font('data/Sonic 1 Title Screen Filled.ttf', 16)
         self.text = text
@@ -104,18 +103,30 @@ all_sprites = pygame.sprite.Group()
 
 
 
-ib = InputBox(175, 225, 'user name')
-ib_2 = InputBox(175, 275, 'password')
+ib = InputBox(175, 250, 'user name')
 running = True
 
 
-def closeall():
-    global running
-    running = False
+def get_access():
+    db = sqlite3.connect('fin_assist.db')
+    cursor = db.cursor()
+    user_login = ib.text
+    try:
+        cursor.execute(f'SELECT login FROM info WHERE login="{user_login}"')
+        check_login = cursor.fetchall()
+        if check_login[0][0] == user_login:
+            print('Успешная авторизация!')
+            from main_level import Hero
+            return Hero
+        else:
+            print('Ошибка авторизации!')
+    except:
+        print('Ошибка авторизации!')
 
 
-button = Button(all_sprites, 225, 400, passive_confirm_btn, active_confirm_btn, closeall)
-button_2 = Button(all_sprites, 375, 400, passive_gen_pass_btn, active_gen_pass_btn, ib_2.generate_password)
+
+
+button = Button(all_sprites, 300, 400, passive_confirm_btn, active_confirm_btn, get_access)
 sign = SignUpWindow(screen)
 sign.draw_title()
 while running:
@@ -123,7 +134,6 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         ib.generate(event)
-        ib_2.generate(event)
         all_sprites.update(event)
     all_sprites.draw(screen)
     all_sprites.update()
